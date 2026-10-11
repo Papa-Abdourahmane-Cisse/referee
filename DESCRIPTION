@@ -1,0 +1,29 @@
+Package: referee
+Type: Package
+Title: Audit Méthodologique Automatique pour Statisticiens et Économistes
+Version: 0.0.0.9000
+Authors@R:
+    person("Papa Abdourahmane", "Cissé", email = "abdourapa123@gmail.com",
+           role = c("aut", "cre"))
+Description: Détecte des erreurs méthodologiques fréquentes dans les travaux
+    d'un statisticien-économiste : pondérations d'enquête oubliées ou
+    inadaptées, désagrégation artificielle, incohérences numériques, fuites
+    d'information. Chaque règle porte un niveau de confiance (certitude,
+    risque probable, à justifier) et est testée sur des données simulées avec
+    une erreur injectée et une jumelle correcte. L'absence d'alerte ne vaut
+    jamais validation de l'analyse.
+License: file LICENSE
+Encoding: UTF-8
+Language: fr
+Depends:
+    R (>= 4.1.0)
+Imports:
+    stats,
+    utils
+Suggests:
+    survey,
+    testthat (>= 3.0.0),
+    yaml
+Config/testthat/edition: 3
+Roxygen: list(markdown = FALSE)
+RoxygenNote: 7.3.1

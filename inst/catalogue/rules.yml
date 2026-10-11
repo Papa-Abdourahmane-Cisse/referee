@@ -1,0 +1,70 @@
+# Catalogue neutre des règles implémentées (indépendant du langage).
+# Source de référence : catalogue de règles du Référé v0 (document partagé).
+# Un test vérifie que cette liste et le registre du code restent identiques.
+
+- id: SUR-01
+  famille: SUR
+  titre: Estimateur sans poids alors qu'une variable de poids est déclarée
+  detection: [statique, métadonnées]
+  confiance: [risque_probable]
+
+- id: SUR-02
+  famille: SUR
+  titre: Poids ménage divisé par la taille du ménage
+  detection: [statique, métadonnées]
+  confiance: [risque_probable]
+
+- id: SUR-03
+  famille: SUR
+  titre: Variance estimée sans le plan de sondage (strates, grappes)
+  detection: [statique, métadonnées]
+  confiance: [risque_probable]
+
+- id: SUR-04
+  famille: SUR
+  titre: Poids invalides (manquants, négatifs, nuls, dispersion extrême)
+  detection: [données]
+  confiance: [certitude, a_justifier]
+
+- id: LVL-01
+  famille: LVL
+  titre: Désagrégation artificielle d'une valeur de niveau supérieur
+  detection: [données, métadonnées]
+  confiance: [certitude]
+
+- id: LVL-02
+  famille: LVL
+  titre: Moyenne simple d'unités agrégées
+  detection: [statique, métadonnées]
+  confiance: [risque_probable]
+
+- id: LVL-03
+  famille: LVL
+  titre: Clé censée être unique présente en double
+  detection: [données]
+  confiance: [certitude]
+
+- id: NUM-01
+  famille: NUM
+  titre: Proportion ou taux hors bornes, échelles mélangées
+  detection: [données, métadonnées]
+  confiance: [certitude, risque_probable]
+
+- id: NUM-02
+  famille: NUM
+  titre: Parts ou sous-totaux qui ne somment pas au total attendu
+  detection: [données, métadonnées]
+  confiance: [certitude]
+
+- id: NUM-03
+  famille: NUM
+  titre: Ordre des indices FGT violé (FGT2 <= FGT1 <= FGT0)
+  detection: [données, métadonnées]
+  confiance: [certitude]
+
+- id: NUM-04
+  famille: NUM
+  titre: Codes de valeurs manquantes traités comme des valeurs
+  detection: [données]
+  confiance: [risque_probable]
+
