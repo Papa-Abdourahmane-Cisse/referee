@@ -28,6 +28,10 @@
 #'   `parts` (colonnes à sommer), soit `total` (colonne du total déclaré), soit
 #'   `target` (valeur attendue, par exemple 100), et `tol` (tolérance
 #'   d'arrondi absolue, 0,5 par défaut).
+#' @param time Nom de la variable temporelle (règle VAL-06).
+#' @param target Nom de la variable cible d'un modèle prédictif (règle VAL-05).
+#' @param train_objects,test_objects Noms des objets du script qui contiennent
+#'   les données d'apprentissage et de test (règles VAL-03 et VAL-04).
 #'
 #' @return Un objet de classe `referee_meta`.
 #' @export
@@ -35,7 +39,9 @@ referee_meta <- function(weights = NULL, size = NULL, strata = NULL,
                          psu = NULL, group = NULL, group_vars = NULL,
                          key = NULL, aggregated_vars = NULL,
                          data_objects = NULL, scales = NULL,
-                         fgt_cols = NULL, sums = NULL) {
+                         fgt_cols = NULL, sums = NULL, time = NULL,
+                         target = NULL, train_objects = NULL,
+                         test_objects = NULL) {
   one <- function(x, nm) {
     if (!is.null(x) && !(is.character(x) && length(x) == 1L && !is.na(x))) {
       stop(sprintf("`%s` doit \u00eatre un nom de variable (cha\u00eene de longueur 1).",
@@ -81,7 +87,10 @@ referee_meta <- function(weights = NULL, size = NULL, strata = NULL,
       key = many(key, "key"),
       aggregated_vars = many(aggregated_vars, "aggregated_vars"),
       data_objects = many(data_objects, "data_objects"),
-      scales = scales, fgt_cols = fgt_cols, sums = sums
+      scales = scales, fgt_cols = fgt_cols, sums = sums,
+      time = one(time, "time"), target = one(target, "target"),
+      train_objects = many(train_objects, "train_objects"),
+      test_objects = many(test_objects, "test_objects")
     ),
     class = "referee_meta"
   )
@@ -90,7 +99,8 @@ referee_meta <- function(weights = NULL, size = NULL, strata = NULL,
 # Liste des colonnes que les métadonnées réclament dans les données.
 meta_columns <- function(meta) {
   cols <- c(meta$weights, meta$size, meta$strata, meta$psu, meta$group,
-            meta$group_vars, meta$key, names(meta$scales), meta$fgt_cols)
+            meta$group_vars, meta$key, names(meta$scales), meta$fgt_cols,
+            meta$time, meta$target)
   for (s in meta$sums) cols <- c(cols, s$parts, s$total)
   unique(cols)
 }

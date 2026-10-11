@@ -58,7 +58,33 @@ rule_registry <- function() {
          }),
     list(id = "NUM-04", family = "NUM", needs = "data", meta = character(),
          fun = num04_missing_codes,
-         args = function(ctx) list(data = ctx$data))
+         args = function(ctx) list(data = ctx$data)),
+    list(id = "VAL-01", family = "VAL", needs = "script", meta = "group",
+         fun = val01_random_cv_grouped,
+         args = function(ctx) list(script = ctx$script, group = ctx$meta$group)),
+    list(id = "VAL-02", family = "VAL", needs = "script", meta = character(),
+         fun = val02_transform_before_split,
+         args = function(ctx) {
+           list(script = ctx$script, data_objects = ctx$meta$data_objects)
+         }),
+    list(id = "VAL-03", family = "VAL", needs = "script",
+         meta = "train_objects",
+         fun = val03_training_performance,
+         args = function(ctx) {
+           list(script = ctx$script, train_objects = ctx$meta$train_objects,
+                test_objects = ctx$meta$test_objects)
+         }),
+    list(id = "VAL-04", family = "VAL", needs = "script", meta = "test_objects",
+         fun = val04_test_set_tuning,
+         args = function(ctx) {
+           list(script = ctx$script, test_objects = ctx$meta$test_objects)
+         }),
+    list(id = "VAL-05", family = "VAL", needs = "data", meta = "target",
+         fun = val05_target_proxy,
+         args = function(ctx) list(data = ctx$data, target = ctx$meta$target)),
+    list(id = "VAL-06", family = "VAL", needs = "script", meta = "time",
+         fun = val06_random_cv_time,
+         args = function(ctx) list(script = ctx$script, time = ctx$meta$time))
   )
 }
 

@@ -16,7 +16,11 @@ referee_meta(
   data_objects = NULL,
   scales = NULL,
   fgt_cols = NULL,
-  sums = NULL
+  sums = NULL,
+  time = NULL,
+  target = NULL,
+  train_objects = NULL,
+  test_objects = NULL
 )
 }
 \arguments{
@@ -52,6 +56,13 @@ FGT2.}
 `parts` (colonnes à sommer), soit `total` (colonne du total déclaré), soit
 `target` (valeur attendue, par exemple 100), et `tol` (tolérance
 d'arrondi absolue, 0,5 par défaut).}
+
+\item{time}{Nom de la variable temporelle (règle VAL-06).}
+
+\item{target}{Nom de la variable cible d'un modèle prédictif (règle VAL-05).}
+
+\item{train_objects, test_objects}{Noms des objets du script qui contiennent
+les données d'apprentissage et de test (règles VAL-03 et VAL-04).}
 }
 \value{
 Un objet de classe `referee_meta`.

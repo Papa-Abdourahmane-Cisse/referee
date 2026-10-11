@@ -89,3 +89,30 @@ test_that("referee_meta valide ses arguments", {
   expect_error(referee_meta(fgt_cols = c("a", "b")), "trois noms")
   expect_error(referee_meta(sums = list(list(parts = "a"))), "exactement")
 })
+
+test_that("audit exécute la famille VAL quand script et métadonnées sont fournis", {
+  d <- make_survey()
+  d$cible <- d$taux_commune
+  d$proxy <- d$cible + 1e-4 * seq_len(nrow(d))
+  script <- parse_script(text = paste(
+    "df$x <- scale(df$x)",
+    "sp <- initial_split(df)",
+    "folds <- vfold_cv(training(sp), v = 5)",
+    "p <- predict(fit, newdata = train)",
+    sep = "\n"))
+  meta <- referee_meta(group = "region", target = "cible",
+                       train_objects = "train", test_objects = "test",
+                       time = "commune")
+  rapport <- audit(data = d, script = script, meta = meta)
+  tab <- as.data.frame(rapport)
+  expect_true(all(c("VAL-01", "VAL-02", "VAL-03", "VAL-05", "VAL-06") %in% tab$rule_id))
+  statut <- setNames(rapport$rules$status, rapport$rules$rule_id)
+  expect_equal(statut[["VAL-04"]], "evaluee") # test_objects déclaré, aucun constat
+  expect_false("VAL-04" %in% tab$rule_id)
+})
+
+test_that("referee_meta contrôle les nouvelles métadonnées", {
+  expect_error(referee_meta(target = c("a", "b")), "target")
+  expect_error(audit(data = make_survey(), meta = referee_meta(target = "absente")),
+               "absentes")
+})

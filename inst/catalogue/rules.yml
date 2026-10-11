@@ -68,3 +68,38 @@
   detection: [données]
   confiance: [risque_probable]
 
+- id: VAL-01
+  famille: VAL
+  titre: Validation croisée aléatoire alors que les observations sont groupées
+  detection: [statique, métadonnées]
+  confiance: [risque_probable]
+
+- id: VAL-02
+  famille: VAL
+  titre: Transformation apprise sur l'ensemble des données avant la séparation
+  detection: [statique]
+  confiance: [risque_probable]
+
+- id: VAL-03
+  famille: VAL
+  titre: Performance calculée sur les données d'apprentissage
+  detection: [statique, métadonnées]
+  confiance: [risque_probable]
+
+- id: VAL-04
+  famille: VAL
+  titre: Jeu de test utilisé pour choisir les hyperparamètres ou le modèle
+  detection: [statique, métadonnées]
+  confiance: [risque_probable]
+
+- id: VAL-05
+  famille: VAL
+  titre: Prédicteur quasi déterministe de la cible
+  detection: [données, métadonnées]
+  confiance: [risque_probable]
+
+- id: VAL-06
+  famille: VAL
+  titre: Validation aléatoire sur des données ordonnées dans le temps
+  detection: [statique, métadonnées]
+  confiance: [risque_probable]
