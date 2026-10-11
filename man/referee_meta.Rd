@@ -20,7 +20,15 @@ referee_meta(
   time = NULL,
   target = NULL,
   train_objects = NULL,
-  test_objects = NULL
+  test_objects = NULL,
+  cluster = NULL,
+  unit = NULL,
+  treat = NULL,
+  endog = NULL,
+  instruments = NULL,
+  controls = NULL,
+  score = NULL,
+  cutoff = NULL
 )
 }
 \arguments{
@@ -63,6 +71,18 @@ d'arrondi absolue, 0,5 par défaut).}
 
 \item{train_objects, test_objects}{Noms des objets du script qui contiennent
 les données d'apprentissage et de test (règles VAL-03 et VAL-04).}
+
+\item{cluster}{Nom de la variable de grappe d'estimation (règle ECO-01).}
+
+\item{unit}{Nom de la variable d'unité d'un panel (règle ECO-02).}
+
+\item{treat}{Nom de la variable de traitement 0/1 (règles ECO-02 et ECO-03).}
+
+\item{endog, instruments, controls}{Régresseur endogène, instruments et
+contrôles exogènes (règle ECO-04).}
+
+\item{score, cutoff}{Variable de score et seuil d'une discontinuité de
+régression (règle ECO-05).}
 }
 \value{
 Un objet de classe `referee_meta`.

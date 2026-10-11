@@ -84,7 +84,37 @@ rule_registry <- function() {
          args = function(ctx) list(data = ctx$data, target = ctx$meta$target)),
     list(id = "VAL-06", family = "VAL", needs = "script", meta = "time",
          fun = val06_random_cv_time,
-         args = function(ctx) list(script = ctx$script, time = ctx$meta$time))
+         args = function(ctx) list(script = ctx$script, time = ctx$meta$time)),
+    list(id = "ECO-01", family = "ECO", needs = "script", meta = "cluster",
+         fun = eco01_cluster_se,
+         args = function(ctx) {
+           list(script = ctx$script, cluster = ctx$meta$cluster)
+         }),
+    list(id = "ECO-02", family = "ECO", needs = c("data", "script"),
+         meta = c("unit", "time", "treat"),
+         fun = eco02_staggered_twfe,
+         args = function(ctx) {
+           list(data = ctx$data, script = ctx$script, unit = ctx$meta$unit,
+                time = ctx$meta$time, treat = ctx$meta$treat)
+         }),
+    list(id = "ECO-03", family = "ECO", needs = "script", meta = "treat",
+         fun = eco03_pretrends,
+         args = function(ctx) list(script = ctx$script, treat = ctx$meta$treat)),
+    list(id = "ECO-04", family = "ECO", needs = "data",
+         meta = c("endog", "instruments"),
+         fun = eco04_weak_instrument,
+         args = function(ctx) {
+           list(data = ctx$data, endog = ctx$meta$endog,
+                instruments = ctx$meta$instruments,
+                controls = ctx$meta$controls)
+         }),
+    list(id = "ECO-05", family = "ECO", needs = "data",
+         meta = c("score", "cutoff"),
+         fun = eco05_rdd_manipulation,
+         args = function(ctx) {
+           list(data = ctx$data, score = ctx$meta$score,
+                cutoff = ctx$meta$cutoff, script = ctx$script)
+         })
   )
 }
 

@@ -103,3 +103,33 @@
   titre: Validation aléatoire sur des données ordonnées dans le temps
   detection: [statique, métadonnées]
   confiance: [risque_probable]
+
+- id: ECO-01
+  famille: ECO
+  titre: Erreurs standards non robustes à la structure de grappes
+  detection: [statique, métadonnées]
+  confiance: [risque_probable]
+
+- id: ECO-02
+  famille: ECO
+  titre: Double différence à effets fixes bidirectionnels avec adoption échelonnée
+  detection: [statique, données, métadonnées]
+  confiance: [risque_probable]
+
+- id: ECO-03
+  famille: ECO
+  titre: Double différence sans examen des tendances pré-traitement
+  detection: [statique, métadonnées]
+  confiance: [a_justifier]
+
+- id: ECO-04
+  famille: ECO
+  titre: "Instrument faible : statistique F de première étape sous le seuil indicatif"
+  detection: [données, métadonnées]
+  confiance: [risque_probable]
+
+- id: ECO-05
+  famille: ECO
+  titre: "Discontinuité de régression : accumulation au seuil ou absence de test de manipulation"
+  detection: [données, statique, métadonnées]
+  confiance: [risque_probable, a_justifier]

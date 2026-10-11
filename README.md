@@ -8,7 +8,7 @@ un rapport de constats classés par niveau de confiance :
 **L'absence d'alerte ne vaut pas validation.** Une règle dont les entrées sont
 manquantes est rapportée « non évaluée », jamais comme réussie.
 
-## Règles implémentées (17)
+## Règles implémentées (22)
 
 | Famille | Règles |
 |---|---|
@@ -16,6 +16,7 @@ manquantes est rapportée « non évaluée », jamais comme réussie.
 | LVL : niveaux d'analyse | LVL-01 à LVL-03 |
 | NUM : cohérence numérique | NUM-01 à NUM-04 |
 | VAL : validation en apprentissage automatique | VAL-01 à VAL-06 (VAL-07 non implémentée : détectabilité trop faible) |
+| ECO : économétrie et identification | ECO-01 à ECO-05 |
 
 Le catalogue neutre (indépendant du langage) est dans `inst/catalogue/rules.yml`.
 Certains seuils (dispersion des poids, codes de valeurs manquantes, parts

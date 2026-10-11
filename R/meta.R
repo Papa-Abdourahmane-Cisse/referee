@@ -30,6 +30,13 @@
 #'   d'arrondi absolue, 0,5 par défaut).
 #' @param time Nom de la variable temporelle (règle VAL-06).
 #' @param target Nom de la variable cible d'un modèle prédictif (règle VAL-05).
+#' @param cluster Nom de la variable de grappe d'estimation (règle ECO-01).
+#' @param unit Nom de la variable d'unité d'un panel (règle ECO-02).
+#' @param treat Nom de la variable de traitement 0/1 (règles ECO-02 et ECO-03).
+#' @param endog,instruments,controls Régresseur endogène, instruments et
+#'   contrôles exogènes (règle ECO-04).
+#' @param score,cutoff Variable de score et seuil d'une discontinuité de
+#'   régression (règle ECO-05).
 #' @param train_objects,test_objects Noms des objets du script qui contiennent
 #'   les données d'apprentissage et de test (règles VAL-03 et VAL-04).
 #'
@@ -41,7 +48,9 @@ referee_meta <- function(weights = NULL, size = NULL, strata = NULL,
                          data_objects = NULL, scales = NULL,
                          fgt_cols = NULL, sums = NULL, time = NULL,
                          target = NULL, train_objects = NULL,
-                         test_objects = NULL) {
+                         test_objects = NULL, cluster = NULL, unit = NULL,
+                         treat = NULL, endog = NULL, instruments = NULL,
+                         controls = NULL, score = NULL, cutoff = NULL) {
   one <- function(x, nm) {
     if (!is.null(x) && !(is.character(x) && length(x) == 1L && !is.na(x))) {
       stop(sprintf("`%s` doit \u00eatre un nom de variable (cha\u00eene de longueur 1).",
@@ -63,6 +72,10 @@ referee_meta <- function(weights = NULL, size = NULL, strata = NULL,
       stop("`scales` doit \u00eatre un vecteur nomm\u00e9 dont les valeurs sont : ",
            paste(valid, collapse = ", "), ".", call. = FALSE)
     }
+  }
+  if (!is.null(cutoff) && !(is.numeric(cutoff) && length(cutoff) == 1L &&
+                              is.finite(cutoff))) {
+    stop("`cutoff` doit \u00eatre un nombre.", call. = FALSE)
   }
   if (!is.null(fgt_cols) &&
         !(is.character(fgt_cols) && length(fgt_cols) == 3L)) {
@@ -90,7 +103,12 @@ referee_meta <- function(weights = NULL, size = NULL, strata = NULL,
       scales = scales, fgt_cols = fgt_cols, sums = sums,
       time = one(time, "time"), target = one(target, "target"),
       train_objects = many(train_objects, "train_objects"),
-      test_objects = many(test_objects, "test_objects")
+      test_objects = many(test_objects, "test_objects"),
+      cluster = one(cluster, "cluster"), unit = one(unit, "unit"),
+      treat = one(treat, "treat"), endog = one(endog, "endog"),
+      instruments = many(instruments, "instruments"),
+      controls = many(controls, "controls"), score = one(score, "score"),
+      cutoff = cutoff
     ),
     class = "referee_meta"
   )
@@ -100,7 +118,8 @@ referee_meta <- function(weights = NULL, size = NULL, strata = NULL,
 meta_columns <- function(meta) {
   cols <- c(meta$weights, meta$size, meta$strata, meta$psu, meta$group,
             meta$group_vars, meta$key, names(meta$scales), meta$fgt_cols,
-            meta$time, meta$target)
+            meta$time, meta$target, meta$cluster, meta$unit, meta$treat,
+            meta$endog, meta$instruments, meta$controls, meta$score)
   for (s in meta$sums) cols <- c(cols, s$parts, s$total)
   unique(cols)
 }

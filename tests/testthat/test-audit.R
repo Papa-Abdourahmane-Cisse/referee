@@ -116,3 +116,26 @@ test_that("referee_meta contrôle les nouvelles métadonnées", {
   expect_error(audit(data = make_survey(), meta = referee_meta(target = "absente")),
                "absentes")
 })
+
+test_that("audit exécute la famille ECO quand script, données et métadonnées sont fournis", {
+  set.seed(41)
+  d <- expand.grid(unit = 1:12, annee = 2010:2017)
+  adopt <- rep(c(2012, 2014, NA), each = 4)
+  d$traite <- as.integer(!is.na(adopt[d$unit]) & d$annee >= adopt[d$unit])
+  z <- rnorm(nrow(d))
+  d$z <- z
+  d$x <- 0.02 * z + rnorm(nrow(d))
+  d$village <- d$unit %% 4
+  d$score <- rnorm(nrow(d))
+  script <- parse_script(text = paste(
+    "m <- fixest::feols(y ~ traite | unit + annee, data = d)",
+    "f <- lm(y ~ traite, data = d)", sep = "\n"))
+  meta <- referee_meta(cluster = "village", unit = "unit", time = "annee",
+                       treat = "traite", endog = "x", instruments = "z",
+                       score = "score", cutoff = 0)
+  rapport <- audit(data = d, script = script, meta = meta)
+  tab <- as.data.frame(rapport)
+  expect_true(all(c("ECO-01", "ECO-02", "ECO-03", "ECO-04") %in% tab$rule_id))
+  statut <- setNames(rapport$rules$status, rapport$rules$rule_id)
+  expect_equal(statut[["ECO-05"]], "evaluee")
+})
