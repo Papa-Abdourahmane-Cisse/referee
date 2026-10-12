@@ -34,7 +34,11 @@ referee_meta(
   figures = NULL,
   indicators = NULL,
   geo_terms = NULL,
-  design = NULL
+  design = NULL,
+  age = NULL,
+  balance = NULL,
+  lifetable = NULL,
+  sexratio = NULL
 )
 }
 \arguments{
@@ -113,6 +117,18 @@ DOC-01). Chaque élément : `name`, `value` (nombre issu de la sortie),
 
 \item{design}{Design d'identification déclaré, en texte libre (règle
 DOC-03).}
+
+\item{age}{Nom de la variable d'âge en années révolues (règle DEM-01).}
+
+\item{balance}{Liste de noms de colonnes de l'équation compensatrice (règle
+DEM-02) : `p0`, `p1`, `births`, `deaths`, et éventuellement `immigrants`,
+`emigrants`.}
+
+\item{lifetable}{Liste de noms de colonnes d'une table de mortalité (règle
+DEM-03) : `age`, `qx` et/ou `lx`, éventuellement `by`.}
+
+\item{sexratio}{Liste de noms de colonnes du rapport de masculinité (règle
+DEM-04) : `group` et, soit `sex` et `male`, soit `males` et `females`.}
 }
 \value{
 Un objet de classe `referee_meta`.

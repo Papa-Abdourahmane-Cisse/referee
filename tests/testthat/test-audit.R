@@ -174,3 +174,24 @@ test_that("audit exécute les familles EXT, REP et DOC avec document et dossier 
   expect_error(audit(document = 1, meta = meta), "document")
   expect_error(audit(project_dir = file.path(tempdir(), "nulle part")), "project_dir")
 })
+
+test_that("audit exécute la famille DEM quand les métadonnées démographiques sont fournies", {
+  skip_si_pas_utf8()
+  set.seed(81)
+  age <- sample(0:90, 4000, replace = TRUE, prob = exp(-(0:90) / 40))
+  idx <- which(age >= 23 & age <= 62 & runif(4000) < 0.5)
+  age[idx] <- 5 * round(age[idx] / 5)
+  d <- data.frame(age = age, sexe = sample(c("M", "F"), 4000, replace = TRUE),
+                  groupe = cut(age, c(-1, 14, 29, 59, 120)))
+  d$sexe[d$groupe == levels(d$groupe)[2]] <- rep(c("M", "M", "M", "F"), length.out = sum(d$groupe == levels(d$groupe)[2]))
+  meta <- referee_meta(
+    age = "age",
+    sexratio = list(group = "groupe", sex = "sexe", male = "M"))
+  rapport <- audit(data = d, meta = meta)
+  tab <- as.data.frame(rapport)
+  expect_true(all(c("DEM-01", "DEM-04") %in% tab$rule_id))
+  statut <- setNames(rapport$rules$status, rapport$rules$rule_id)
+  expect_equal(statut[["DEM-02"]], "non_evaluee")
+  expect_equal(statut[["DEM-03"]], "non_evaluee")
+  expect_error(audit(data = d, meta = referee_meta(age = "absent")), "absentes")
+})

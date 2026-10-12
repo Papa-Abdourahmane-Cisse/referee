@@ -8,7 +8,7 @@ un rapport de constats classés par niveau de confiance :
 **L'absence d'alerte ne vaut pas validation.** Une règle dont les entrées sont
 manquantes est rapportée « non évaluée », jamais comme réussie.
 
-## Règles implémentées (30)
+## Règles implémentées (34)
 
 | Famille | Règles |
 |---|---|
@@ -20,6 +20,7 @@ manquantes est rapportée « non évaluée », jamais comme réussie.
 | EXT : cohérence externe | EXT-01, EXT-02 |
 | REP : reproductibilité | REP-01 à REP-03 |
 | DOC : cohérence documentaire | DOC-01 à DOC-03 |
+| DEM : démographie (règles candidates, non relues par un praticien) | DEM-01 à DEM-04 |
 
 Le catalogue neutre (indépendant du langage) est dans `inst/catalogue/rules.yml`.
 Certains seuils (dispersion des poids, codes de valeurs manquantes, parts

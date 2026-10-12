@@ -181,3 +181,27 @@
   titre: Langage causal sans design d'identification déclaré
   detection: [texte, métadonnées]
   confiance: [a_justifier]
+
+- id: DEM-01
+  famille: DEM
+  titre: Préférence pour les âges se terminant par 0 ou 5 (indice de Whipple)
+  detection: [données, métadonnées]
+  confiance: [a_justifier]
+
+- id: DEM-02
+  famille: DEM
+  titre: Équation compensatrice non respectée
+  detection: [données, métadonnées]
+  confiance: [certitude]
+
+- id: DEM-03
+  famille: DEM
+  titre: "Table de mortalité incohérente (qx hors de [0 ; 1], lx croissant)"
+  detection: [données, métadonnées]
+  confiance: [certitude]
+
+- id: DEM-04
+  famille: DEM
+  titre: Rapport de masculinité hors d'une plage plausible
+  detection: [données, métadonnées]
+  confiance: [a_justifier]

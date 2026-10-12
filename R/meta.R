@@ -55,6 +55,14 @@
 #' @param geo_terms Termes géographiques reconnus dans le texte (règle DOC-02).
 #' @param design Design d'identification déclaré, en texte libre (règle
 #'   DOC-03).
+#' @param age Nom de la variable d'âge en années révolues (règle DEM-01).
+#' @param balance Liste de noms de colonnes de l'équation compensatrice (règle
+#'   DEM-02) : `p0`, `p1`, `births`, `deaths`, et éventuellement `immigrants`,
+#'   `emigrants`.
+#' @param lifetable Liste de noms de colonnes d'une table de mortalité (règle
+#'   DEM-03) : `age`, `qx` et/ou `lx`, éventuellement `by`.
+#' @param sexratio Liste de noms de colonnes du rapport de masculinité (règle
+#'   DEM-04) : `group` et, soit `sex` et `male`, soit `males` et `females`.
 #' @param train_objects,test_objects Noms des objets du script qui contiennent
 #'   les données d'apprentissage et de test (règles VAL-03 et VAL-04).
 #'
@@ -71,7 +79,8 @@ referee_meta <- function(weights = NULL, size = NULL, strata = NULL,
                          controls = NULL, score = NULL, cutoff = NULL,
                          references = NULL, poverty = NULL, figures = NULL,
                          indicators = NULL, geo_terms = NULL,
-                         design = NULL) {
+                         design = NULL, age = NULL, balance = NULL,
+                         lifetable = NULL, sexratio = NULL) {
   one <- function(x, nm) {
     if (!is.null(x) && !(is.character(x) && length(x) == 1L && !is.na(x))) {
       stop(sprintf("`%s` doit \u00eatre un nom de variable (cha\u00eene de longueur 1).",
@@ -98,6 +107,9 @@ referee_meta <- function(weights = NULL, size = NULL, strata = NULL,
                               is.finite(cutoff))) {
     stop("`cutoff` doit \u00eatre un nombre.", call. = FALSE)
   }
+  if (!is.null(balance)) check_balance(balance)
+  if (!is.null(lifetable)) check_lifetable(lifetable)
+  if (!is.null(sexratio)) check_sexratio(sexratio)
   if (!is.null(references)) check_references(references)
   if (!is.null(figures)) check_figures(figures)
   if (!is.null(poverty)) {
@@ -142,7 +154,8 @@ referee_meta <- function(weights = NULL, size = NULL, strata = NULL,
       controls = many(controls, "controls"), score = one(score, "score"),
       cutoff = cutoff, references = references, poverty = poverty,
       figures = figures, indicators = indicators,
-      geo_terms = many(geo_terms, "geo_terms"), design = one(design, "design")
+      geo_terms = many(geo_terms, "geo_terms"), design = one(design, "design"), age = one(age, "age"),
+      balance = balance, lifetable = lifetable, sexratio = sexratio
     ),
     class = "referee_meta"
   )
@@ -156,6 +169,11 @@ meta_columns <- function(meta) {
             meta$endog, meta$instruments, meta$controls, meta$score)
   for (s in meta$sums) cols <- c(cols, s$parts, s$total)
   for (r in meta$references) cols <- c(cols, r$var)
+  cols <- c(cols, meta$age, unlist(meta$balance), unlist(meta$lifetable))
+  if (!is.null(meta$sexratio)) {
+    cols <- c(cols, meta$sexratio$group, meta$sexratio$sex,
+              meta$sexratio$males, meta$sexratio$females)
+  }
   unique(cols)
 }
 

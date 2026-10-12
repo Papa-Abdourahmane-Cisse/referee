@@ -153,6 +153,23 @@ rule_registry <- function() {
          fun = doc03_causal_language,
          args = function(ctx) {
            list(document = ctx$document, design = ctx$meta$design)
+         }),
+    list(id = "DEM-01", family = "DEM", needs = "data", meta = "age",
+         fun = dem01_age_heaping,
+         args = function(ctx) {
+           list(data = ctx$data, age = ctx$meta$age, weights = ctx$meta$weights)
+         }),
+    list(id = "DEM-02", family = "DEM", needs = "data", meta = "balance",
+         fun = dem02_balancing_equation,
+         args = function(ctx) list(data = ctx$data, balance = ctx$meta$balance)),
+    list(id = "DEM-03", family = "DEM", needs = "data", meta = "lifetable",
+         fun = dem03_life_table,
+         args = function(ctx) list(data = ctx$data, lifetable = ctx$meta$lifetable)),
+    list(id = "DEM-04", family = "DEM", needs = "data", meta = "sexratio",
+         fun = dem04_sex_ratio,
+         args = function(ctx) {
+           list(data = ctx$data, sexratio = ctx$meta$sexratio,
+                weights = ctx$meta$weights)
          })
   )
 }
