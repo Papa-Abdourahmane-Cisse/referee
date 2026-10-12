@@ -4,7 +4,14 @@
 \alias{audit}
 \title{Auditer des données et/ou un script R}
 \usage{
-audit(data = NULL, script = NULL, meta = referee_meta(), params = list())
+audit(
+  data = NULL,
+  script = NULL,
+  meta = referee_meta(),
+  params = list(),
+  document = NULL,
+  project_dir = NULL
+)
 }
 \arguments{
 \item{data}{Data frame ou `NULL`.}
@@ -17,6 +24,11 @@ audit(data = NULL, script = NULL, meta = referee_meta(), params = list())
 \item{params}{Liste nommée par identifiant de règle, qui surcharge les
 paramètres d'une règle, par exemple
 `list("SUR-04" = list(ratio_max_median = 50))`.}
+
+\item{document}{Chemin d'un fichier texte, objet issu de [read_document()]
+ou `NULL` (famille DOC).}
+
+\item{project_dir}{Racine du projet (dossier) ou `NULL` (règles REP).}
 }
 \value{
 Un objet de classe `referee_report`.

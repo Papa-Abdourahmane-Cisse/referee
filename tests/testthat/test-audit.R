@@ -139,3 +139,38 @@ test_that("audit exécute la famille ECO quand script, données et métadonnées
   statut <- setNames(rapport$rules$status, rapport$rules$rule_id)
   expect_equal(statut[["ECO-05"]], "evaluee")
 })
+
+test_that("audit exécute les familles EXT, REP et DOC avec document et dossier de projet", {
+  skip_si_pas_utf8()
+  dir <- tempfile("projet")
+  dir.create(dir)
+  d <- data.frame(pauvre = c(rep(1, 40), rep(0, 60)), poids = rep(1, 100))
+  script <- parse_script(text = "x <- rnorm(5)\nd <- read.csv('/home/abdou/base.csv')")
+  doc <- read_document(text = c("Le taux de pauvreté atteint 41,0 %.",
+                                "L'impact du programme est de 3 points."))
+  meta <- referee_meta(
+    weights = "poids",
+    references = list(list(name = "taux", reference = 0.30, tol = 0.01, var = "pauvre")),
+    poverty = list(line_year = 2018, welfare_year = 2021),
+    figures = list(list(name = "taux", value = 0.40, pattern = "taux de pauvreté",
+                        factor = 100)),
+    indicators = list(list(name = "taux", pattern = "taux de pauvreté")),
+    design = "observationnel")
+  rapport <- audit(data = d, script = script, meta = meta, document = doc,
+                   project_dir = dir)
+  tab <- as.data.frame(rapport)
+  attendu <- c("EXT-01", "EXT-02", "REP-01", "REP-02", "REP-03", "DOC-01",
+               "DOC-02", "DOC-03")
+  expect_true(all(attendu %in% tab$rule_id))
+  expect_equal(tab$severity[tab$rule_id == "DOC-01"], "certitude")
+  # Sans document ni dossier, ces règles sont non évaluées, jamais « passées ».
+  sans <- audit(data = d, script = script, meta = meta)
+  statut <- setNames(sans$rules$status, sans$rules$rule_id)
+  expect_equal(statut[["REP-03"]], "non_evaluee")
+  expect_equal(statut[["DOC-01"]], "non_evaluee")
+  raison <- setNames(sans$rules$reason, sans$rules$rule_id)
+  expect_match(raison[["DOC-03"]], "document non fourni")
+  expect_match(raison[["REP-03"]], "dossier du projet non fourni")
+  expect_error(audit(document = 1, meta = meta), "document")
+  expect_error(audit(project_dir = file.path(tempdir(), "nulle part")), "project_dir")
+})

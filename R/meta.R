@@ -37,6 +37,24 @@
 #'   contrôles exogènes (règle ECO-04).
 #' @param score,cutoff Variable de score et seuil d'une discontinuité de
 #'   régression (règle ECO-05).
+#' @param references Liste de valeurs de référence (règle EXT-01). Chaque
+#'   élément : `name`, `reference` (valeur de référence), `tol` (tolérance),
+#'   exactement l'un de `var` (colonne dont la moyenne, pondérée si `weights`
+#'   est déclaré, est comparée) ou `estimate` (estimation fournie), et
+#'   éventuellement `tol_type` (`"absolute"` ou `"relative"`).
+#' @param poverty Liste nommée de déclarations sur la ligne de pauvreté et
+#'   l'agrégat de bien-être (règle EXT-02) : `line_year`, `welfare_year`,
+#'   `price_adjusted`, `line_unit`, `welfare_unit`, `line_period`,
+#'   `welfare_period`.
+#' @param figures Liste de chiffres du texte reliés à leur source (règle
+#'   DOC-01). Chaque élément : `name`, `value` (nombre issu de la sortie),
+#'   `pattern` (expression régulière repérant la phrase), et éventuellement
+#'   `factor` (100 pour une proportion affichée en pourcentage).
+#' @param indicators Liste d'indicateurs (règle DOC-02), chacun avec `name` et
+#'   `pattern`.
+#' @param geo_terms Termes géographiques reconnus dans le texte (règle DOC-02).
+#' @param design Design d'identification déclaré, en texte libre (règle
+#'   DOC-03).
 #' @param train_objects,test_objects Noms des objets du script qui contiennent
 #'   les données d'apprentissage et de test (règles VAL-03 et VAL-04).
 #'
@@ -50,7 +68,10 @@ referee_meta <- function(weights = NULL, size = NULL, strata = NULL,
                          target = NULL, train_objects = NULL,
                          test_objects = NULL, cluster = NULL, unit = NULL,
                          treat = NULL, endog = NULL, instruments = NULL,
-                         controls = NULL, score = NULL, cutoff = NULL) {
+                         controls = NULL, score = NULL, cutoff = NULL,
+                         references = NULL, poverty = NULL, figures = NULL,
+                         indicators = NULL, geo_terms = NULL,
+                         design = NULL) {
   one <- function(x, nm) {
     if (!is.null(x) && !(is.character(x) && length(x) == 1L && !is.na(x))) {
       stop(sprintf("`%s` doit \u00eatre un nom de variable (cha\u00eene de longueur 1).",
@@ -76,6 +97,17 @@ referee_meta <- function(weights = NULL, size = NULL, strata = NULL,
   if (!is.null(cutoff) && !(is.numeric(cutoff) && length(cutoff) == 1L &&
                               is.finite(cutoff))) {
     stop("`cutoff` doit \u00eatre un nombre.", call. = FALSE)
+  }
+  if (!is.null(references)) check_references(references)
+  if (!is.null(figures)) check_figures(figures)
+  if (!is.null(poverty)) {
+    valid_p <- c("line_year", "welfare_year", "price_adjusted", "line_unit",
+                 "welfare_unit", "line_period", "welfare_period")
+    if (!is.list(poverty) || is.null(names(poverty)) ||
+          !all(names(poverty) %in% valid_p)) {
+      stop("`poverty` doit \u00eatre une liste nomm\u00e9e parmi : ",
+           paste(valid_p, collapse = ", "), ".", call. = FALSE)
+    }
   }
   if (!is.null(fgt_cols) &&
         !(is.character(fgt_cols) && length(fgt_cols) == 3L)) {
@@ -108,7 +140,9 @@ referee_meta <- function(weights = NULL, size = NULL, strata = NULL,
       treat = one(treat, "treat"), endog = one(endog, "endog"),
       instruments = many(instruments, "instruments"),
       controls = many(controls, "controls"), score = one(score, "score"),
-      cutoff = cutoff
+      cutoff = cutoff, references = references, poverty = poverty,
+      figures = figures, indicators = indicators,
+      geo_terms = many(geo_terms, "geo_terms"), design = one(design, "design")
     ),
     class = "referee_meta"
   )
@@ -121,6 +155,7 @@ meta_columns <- function(meta) {
             meta$time, meta$target, meta$cluster, meta$unit, meta$treat,
             meta$endog, meta$instruments, meta$controls, meta$score)
   for (s in meta$sums) cols <- c(cols, s$parts, s$total)
+  for (r in meta$references) cols <- c(cols, r$var)
   unique(cols)
 }
 

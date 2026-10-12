@@ -114,6 +114,45 @@ rule_registry <- function() {
          args = function(ctx) {
            list(data = ctx$data, score = ctx$meta$score,
                 cutoff = ctx$meta$cutoff, script = ctx$script)
+         }),
+    list(id = "EXT-01", family = "EXT", needs = character(),
+         meta = "references",
+         fun = ext01_reference_gap,
+         args = function(ctx) {
+           list(data = ctx$data, references = ctx$meta$references,
+                weights = ctx$meta$weights)
+         }),
+    list(id = "EXT-02", family = "EXT", needs = character(), meta = "poverty",
+         fun = ext02_poverty_line_consistency,
+         args = function(ctx) list(poverty = ctx$meta$poverty)),
+    list(id = "REP-01", family = "REP", needs = "script", meta = character(),
+         fun = rep01_paths,
+         args = function(ctx) {
+           list(script = ctx$script, project_dir = ctx$project_dir)
+         }),
+    list(id = "REP-02", family = "REP", needs = "script", meta = character(),
+         fun = rep02_seed,
+         args = function(ctx) list(script = ctx$script)),
+    list(id = "REP-03", family = "REP", needs = "project_dir",
+         meta = character(),
+         fun = rep03_environment,
+         args = function(ctx) list(project_dir = ctx$project_dir)),
+    list(id = "DOC-01", family = "DOC", needs = "document", meta = "figures",
+         fun = doc01_text_vs_output,
+         args = function(ctx) {
+           list(document = ctx$document, figures = ctx$meta$figures)
+         }),
+    list(id = "DOC-02", family = "DOC", needs = "document",
+         meta = "indicators",
+         fun = doc02_indicator_consistency,
+         args = function(ctx) {
+           list(document = ctx$document, indicators = ctx$meta$indicators,
+                geo_terms = ctx$meta$geo_terms)
+         }),
+    list(id = "DOC-03", family = "DOC", needs = "document", meta = "design",
+         fun = doc03_causal_language,
+         args = function(ctx) {
+           list(document = ctx$document, design = ctx$meta$design)
          })
   )
 }
@@ -135,13 +174,16 @@ rule_ids <- function() {
 #' @param script Chemin d'un script R, objet issu de [parse_script()] ou
 #'   `NULL`.
 #' @param meta Métadonnées, voir [referee_meta()].
+#' @param document Chemin d'un fichier texte, objet issu de [read_document()]
+#'   ou `NULL` (famille DOC).
+#' @param project_dir Racine du projet (dossier) ou `NULL` (règles REP).
 #' @param params Liste nommée par identifiant de règle, qui surcharge les
 #'   paramètres d'une règle, par exemple
 #'   `list("SUR-04" = list(ratio_max_median = 50))`.
 #' @return Un objet de classe `referee_report`.
 #' @export
 audit <- function(data = NULL, script = NULL, meta = referee_meta(),
-                  params = list()) {
+                  params = list(), document = NULL, project_dir = NULL) {
   if (!inherits(meta, "referee_meta")) {
     stop("`meta` doit \u00eatre cr\u00e9\u00e9 par `referee_meta()`.", call. = FALSE)
   }
@@ -155,10 +197,23 @@ audit <- function(data = NULL, script = NULL, meta = referee_meta(),
     stop("`script` doit \u00eatre un chemin ou un objet de `parse_script()`.",
          call. = FALSE)
   }
+  if (is.character(document)) {
+    document <- read_document(path = document)
+  }
+  if (!is.null(document) && !inherits(document, "referee_document")) {
+    stop("`document` doit \u00eatre un chemin ou un objet de `read_document()`.",
+         call. = FALSE)
+  }
+  if (!is.null(project_dir) &&
+        !(is.character(project_dir) && length(project_dir) == 1L &&
+            dir.exists(project_dir))) {
+    stop("`project_dir` doit \u00eatre un dossier existant.", call. = FALSE)
+  }
   if (!is.null(data)) {
     check_meta_columns(meta, data)
   }
-  ctx <- list(data = data, script = script, meta = meta)
+  ctx <- list(data = data, script = script, meta = meta, document = document,
+              project_dir = project_dir)
 
   findings <- list()
   rows <- list()
@@ -168,6 +223,10 @@ audit <- function(data = NULL, script = NULL, meta = referee_meta(),
       reason <- "donn\u00e9es non fournies"
     } else if ("script" %in% spec$needs && is.null(script)) {
       reason <- "script non fourni"
+    } else if ("document" %in% spec$needs && is.null(document)) {
+      reason <- "document non fourni"
+    } else if ("project_dir" %in% spec$needs && is.null(project_dir)) {
+      reason <- "dossier du projet non fourni"
     } else {
       absent <- spec$meta[vapply(spec$meta, function(f) is.null(meta[[f]]),
                                  logical(1))]

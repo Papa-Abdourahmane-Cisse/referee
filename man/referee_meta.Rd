@@ -28,7 +28,13 @@ referee_meta(
   instruments = NULL,
   controls = NULL,
   score = NULL,
-  cutoff = NULL
+  cutoff = NULL,
+  references = NULL,
+  poverty = NULL,
+  figures = NULL,
+  indicators = NULL,
+  geo_terms = NULL,
+  design = NULL
 )
 }
 \arguments{
@@ -83,6 +89,30 @@ contrôles exogènes (règle ECO-04).}
 
 \item{score, cutoff}{Variable de score et seuil d'une discontinuité de
 régression (règle ECO-05).}
+
+\item{references}{Liste de valeurs de référence (règle EXT-01). Chaque
+élément : `name`, `reference` (valeur de référence), `tol` (tolérance),
+exactement l'un de `var` (colonne dont la moyenne, pondérée si `weights`
+est déclaré, est comparée) ou `estimate` (estimation fournie), et
+éventuellement `tol_type` (`"absolute"` ou `"relative"`).}
+
+\item{poverty}{Liste nommée de déclarations sur la ligne de pauvreté et
+l'agrégat de bien-être (règle EXT-02) : `line_year`, `welfare_year`,
+`price_adjusted`, `line_unit`, `welfare_unit`, `line_period`,
+`welfare_period`.}
+
+\item{figures}{Liste de chiffres du texte reliés à leur source (règle
+DOC-01). Chaque élément : `name`, `value` (nombre issu de la sortie),
+`pattern` (expression régulière repérant la phrase), et éventuellement
+`factor` (100 pour une proportion affichée en pourcentage).}
+
+\item{indicators}{Liste d'indicateurs (règle DOC-02), chacun avec `name` et
+`pattern`.}
+
+\item{geo_terms}{Termes géographiques reconnus dans le texte (règle DOC-02).}
+
+\item{design}{Design d'identification déclaré, en texte libre (règle
+DOC-03).}
 }
 \value{
 Un objet de classe `referee_meta`.

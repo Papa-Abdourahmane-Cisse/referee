@@ -133,3 +133,51 @@
   titre: "Discontinuité de régression : accumulation au seuil ou absence de test de manipulation"
   detection: [données, statique, métadonnées]
   confiance: [risque_probable, a_justifier]
+
+- id: EXT-01
+  famille: EXT
+  titre: Écart non expliqué avec une valeur de référence déclarée
+  detection: [données, métadonnées]
+  confiance: [a_justifier]
+
+- id: EXT-02
+  famille: EXT
+  titre: "Ligne de pauvreté, année, unité ou période incohérentes avec l'agrégat de bien-être déclaré"
+  detection: [métadonnées]
+  confiance: [risque_probable]
+
+- id: REP-01
+  famille: REP
+  titre: "Chemin absolu propre à une machine, ou fichier d'entrée introuvable"
+  detection: [statique, système de fichiers]
+  confiance: [certitude, risque_probable]
+
+- id: REP-02
+  famille: REP
+  titre: Procédure stochastique sans graine aléatoire
+  detection: [statique]
+  confiance: [certitude, risque_probable]
+
+- id: REP-03
+  famille: REP
+  titre: "Environnement logiciel non documenté (ni renv.lock, ni Dockerfile, ni sessionInfo)"
+  detection: [système de fichiers]
+  confiance: [a_justifier]
+
+- id: DOC-01
+  famille: DOC
+  titre: Chiffre du texte différent de celui de la sortie qui l'a produit
+  detection: [texte, métadonnées]
+  confiance: [certitude, a_justifier]
+
+- id: DOC-02
+  famille: DOC
+  titre: "Indicateur chiffré de deux façons, ou sans niveau géographique ni période"
+  detection: [texte, métadonnées]
+  confiance: [risque_probable, a_justifier]
+
+- id: DOC-03
+  famille: DOC
+  titre: Langage causal sans design d'identification déclaré
+  detection: [texte, métadonnées]
+  confiance: [a_justifier]
