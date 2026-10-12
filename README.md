@@ -59,4 +59,8 @@ Windows à chaque `push` et pull request vers `main`. Tout avertissement fait
 
 ## Limites connues
 
-Licence et nom définitif du paquet à fixer. Références du catalogue à vérifier.
+Références du catalogue à vérifier. Aucune validation sur de vrais scripts ou de vraies données n'a encore été faite.
+
+## Licence
+
+GPL-3 (voir `COPYING`). Auteur : Papa Abdourahmane Cissé.
