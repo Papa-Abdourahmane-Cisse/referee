@@ -48,7 +48,7 @@ SECOND_ARGUMENT_PATH <- c("write.csv", "write.csv2", "write.table", "saveRDS",
                           "write_csv", "write_dta", "write_xlsx", "fwrite",
                           "write_parquet", "writeLines")
 
-literal_path <- function(cl, name = NA_character_) {
+path_argument <- function(cl, name = NA_character_) {
   nms <- names(cl)
   cand <- NULL
   if (!is.null(nms) && any(nms %in% c("file", "path", "con"))) {
@@ -57,7 +57,69 @@ literal_path <- function(cl, name = NA_character_) {
     pos <- if (!is.na(name) && name %in% SECOND_ARGUMENT_PATH) 3L else 2L
     if (length(cl) >= pos) cand <- cl[[pos]]
   }
+  cand
+}
+
+literal_path <- function(cl, name = NA_character_) {
+  cand <- path_argument(cl, name)
   if (is.character(cand) && length(cand) == 1L && !is.na(cand)) cand else NULL
+}
+
+# Chemins affectés à une variable au premier niveau du script :
+# `chemin <- "C:/data/"`, `f <- file.path(chemin, "a")`, etc. Renvoie une
+# liste nommée de chaînes ; une variable dont la valeur n'est pas entièrement
+# lisible dans le code (appel de fonction inconnue) est ignorée.
+path_assignments <- function(script) {
+  env <- list()
+  for (e in as.list(script$exprs)) {
+    if (!is.call(e) || length(e) != 3L ||
+          !as.character(e[[1L]])[1L] %in% c("<-", "=", "<<-") ||
+          !is.name(e[[2L]])) next
+    val <- resolve_path_expr(e[[3L]], env)
+    if (!is.null(val)) env[[as.character(e[[2L]])]] <- val
+  }
+  env
+}
+
+# Évalue une expression de chemin sans exécuter de code : chaînes littérales,
+# variables connues et concaténations par `paste0()`, `paste()`, `file.path()`.
+# Renvoie `list(prefix, complete)` : le début lisible du chemin et son
+# caractère complet ; NULL si même le début est inconnu.
+resolve_path_expr <- function(e, env) {
+  if (is.character(e) && length(e) == 1L && !is.na(e)) {
+    return(list(prefix = e, complete = TRUE))
+  }
+  if (is.name(e)) {
+    return(env[[as.character(e)]])
+  }
+  if (is.call(e)) {
+    nm <- call_name(e)
+    if (!is.na(nm) && nm %in% c("paste0", "paste", "file.path")) {
+      args <- as.list(e)[-1L]
+      if (!is.null(names(args))) {
+        args <- args[!names(args) %in% c("sep", "collapse")]
+      }
+      sep <- if (nm == "paste0") "" else if (nm == "file.path") "/" else " "
+      parts <- character()
+      complete <- TRUE
+      for (a in args) {
+        r <- resolve_path_expr(a, env)
+        if (is.null(r)) {
+          complete <- FALSE
+          break
+        }
+        parts <- c(parts, r$prefix)
+        if (!r$complete) {
+          complete <- FALSE
+          break
+        }
+      }
+      if (length(parts) == 0L) return(NULL)
+      prefix <- paste(parts, collapse = sep)
+      return(list(prefix = prefix, complete = complete))
+    }
+  }
+  NULL
 }
 
 is_absolute_path <- function(p) {
@@ -76,8 +138,14 @@ is_absolute_path <- function(p) {
 #' pas contrôlée. L'existence d'un chemin absolu n'est pas contrôlée non
 #' plus : l'audit ne s'exécute pas forcément sur la machine de l'analyse.
 #'
-#' Limite connue : les chemins construits (`paste0()`, `file.path()`,
-#' `here::here()`) ne sont pas évalués. Les adresses web sont ignorées.
+#' Les chemins construits par `paste0()`, `paste()` ou `file.path()` à partir
+#' de chaînes littérales et de variables affectées au premier niveau du script
+#' sont reconstitués sans exécuter le code ; pour un chemin partiellement
+#' connu, seul le début est examiné (chemin absolu), pas l'existence du
+#' fichier.
+#'
+#' Limite connue : un chemin issu d'une fonction (`here::here()`, `getwd()`,
+#' une variable lue ailleurs) n'est pas évalué. Les adresses web sont ignorées.
 #'
 #' @param script Objet issu de [parse_script()].
 #' @param project_dir Racine du projet, ou `NULL`.
@@ -85,18 +153,30 @@ is_absolute_path <- function(p) {
 #' @export
 rep01_paths <- function(script, project_dir = NULL) {
   out <- list()
+  env <- path_assignments(script)
   for (rec in collect_calls(script)) {
     if (is.na(rec$name) || !rec$name %in% c(READ_FUNCTIONS, WRITE_FUNCTIONS)) next
-    p <- literal_path(rec$call, rec$name)
-    if (is.null(p) || grepl("^[A-Za-z][A-Za-z0-9+.-]*://", p)) next
+    arg <- path_argument(rec$call, rec$name)
+    if (is.null(arg)) next
+    r <- resolve_path_expr(arg, env)
+    if (is.null(r)) next
+    p <- r$prefix
+    if (grepl("^[A-Za-z][A-Za-z0-9+.-]*://", p)) next
+    via <- if (is.name(arg) || is.call(arg)) {
+      vars <- intersect(expr_tokens(arg), names(env))
+      if (length(vars) > 0L) {
+        sprintf(" (obtenu via la variable `%s`)", vars[[1L]])
+      } else ""
+    } else ""
     if (is_absolute_path(p)) {
       out[[length(out) + 1L]] <- new_finding(
         "REP-01", "risque_probable",
-        sprintf(paste0("`%s()` utilise le chemin absolu \u00ab %s \u00bb, propre \u00e0 une ",
-                       "machine. Utiliser un chemin relatif \u00e0 la racine du ",
-                       "projet."), rec$name, p),
+        sprintf(paste0("`%s()` utilise le chemin absolu \u00ab %s \u00bb%s, propre ",
+                       "\u00e0 une machine. Utiliser un chemin relatif \u00e0 la ",
+                       "racine du projet."), rec$name, p, via),
         location = call_location(rec))
-    } else if (!is.null(project_dir) && rec$name %in% READ_FUNCTIONS &&
+    } else if (r$complete && !is.null(project_dir) &&
+                 rec$name %in% READ_FUNCTIONS &&
                  !file.exists(file.path(project_dir, p))) {
       out[[length(out) + 1L]] <- new_finding(
         "REP-01", "certitude",

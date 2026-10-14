@@ -26,6 +26,12 @@ pas contrôlée. L'existence d'un chemin absolu n'est pas contrôlée non
 plus : l'audit ne s'exécute pas forcément sur la machine de l'analyse.
 }
 \details{
-Limite connue : les chemins construits (`paste0()`, `file.path()`,
-`here::here()`) ne sont pas évalués. Les adresses web sont ignorées.
+Les chemins construits par `paste0()`, `paste()` ou `file.path()` à partir
+de chaînes littérales et de variables affectées au premier niveau du script
+sont reconstitués sans exécuter le code ; pour un chemin partiellement
+connu, seul le début est examiné (chemin absolu), pas l'existence du
+fichier.
+
+Limite connue : un chemin issu d'une fonction (`here::here()`, `getwd()`,
+une variable lue ailleurs) n'est pas évalué. Les adresses web sont ignorées.
 }

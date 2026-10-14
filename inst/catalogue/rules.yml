@@ -16,9 +16,9 @@
 
 - id: SUR-03
   famille: SUR
-  titre: Variance estimée sans le plan de sondage (strates, grappes)
+  titre: Variance estimée sans le plan de sondage (strates, grappes) ou plan sans grappe
   detection: [statique, métadonnées]
-  confiance: [risque_probable]
+  confiance: [risque_probable, a_justifier]
 
 - id: SUR-04
   famille: SUR

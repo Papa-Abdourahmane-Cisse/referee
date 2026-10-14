@@ -16,19 +16,25 @@ sur03_design_ignored(
 \arguments{
 \item{script}{Objet issu de [parse_script()].}
 
-\item{strata, psu}{Noms des variables de strate et de grappe ; au moins l'un
-des deux doit être fourni.}
+\item{strata, psu}{Noms des variables de strate et de grappe (facultatifs ;
+sans eux, seul le contrôle d'un plan sans grappe s'applique).}
 
 \item{tests}{Noms des fonctions considérées comme ignorant le plan.}
 
 \item{design_constructors}{Noms des fonctions qui déclarent un plan.}
 }
 \value{
-Liste de constats (confiance : risque probable), ou une règle non
-  évaluée si ni strate ni grappe n'est déclarée.
+Liste de constats, ou une règle non évaluée si ni strate ni grappe
+  n'est déclarée et qu'aucun plan de sondage ne figure dans le script.
 }
 \description{
 Quand des strates ou des grappes sont déclarées, signale les régressions et
 tests de base R appelés sans qu'aucun plan de sondage (`svydesign`,
 `as_survey_design`, etc.) ne soit défini dans le script.
+}
+\details{
+Indépendamment des métadonnées, signale aussi un plan construit sans grappe
+(`svydesign(ids = ~1, ...)`) : confiance « à justifier » (le tirage peut
+réellement être sans grappe, ou les grappes peuvent être absentes de la
+base), et « risque probable » si une grappe est déclarée dans `psu`.
 }

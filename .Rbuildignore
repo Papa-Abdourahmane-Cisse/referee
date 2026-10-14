@@ -5,3 +5,7 @@
 ^README\.md$
 ^\.gitignore$
 ^COPYING$
+^docs$
+^tools$
+^CONTRIBUTING\.md$
+^NEWS\.md$

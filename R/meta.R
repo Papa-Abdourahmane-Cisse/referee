@@ -2,9 +2,11 @@
 
 #' Déclarer les métadonnées d'une enquête ou d'une analyse
 #'
-#' Le Référé ne devine jamais le rôle d'une variable : il le lit ici. Une
-#' règle dont les métadonnées requises manquent est signalée comme non
-#' évaluée dans le rapport.
+#' Le Référé ne devine pas le rôle d'une variable : il le lit ici. La seule
+#' exception est `audit(infer = TRUE)`, qui lit dans le script ce que
+#' `svydesign()` déclare déjà (poids, grappes, strates, table d'enquête), voir
+#' [infer_meta()]. Une règle dont les métadonnées requises manquent est
+#' signalée comme non évaluée dans le rapport.
 #'
 #' @param weights Nom de la variable de poids d'échantillonnage.
 #' @param size Nom de la variable de taille du ménage.

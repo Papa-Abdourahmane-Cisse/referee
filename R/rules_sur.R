@@ -6,8 +6,15 @@
 #' arguments ne citent ni la variable de poids ni un argument `weights`. Les
 #' variantes pondérées (`weighted.mean`, `svymean`) ne sont pas concernées.
 #'
+#' Les pipes magrittr (`%>%`) sont dépliés et les appels situés dans un verbe
+#' de manipulation de table (`summarise()`, `mutate()`, etc.) sont rattachés à
+#' la table de départ : `enes %>% summarise(m = mean(x))` est reconnu comme un
+#' calcul sur `enes`.
+#'
 #' Limite connue : un appel qui cite la variable de poids sans l'utiliser
-#' comme poids (par exemple pour filtrer) échappe à la règle.
+#' comme poids (par exemple pour filtrer) échappe à la règle. Un objet
+#' intermédiaire (`d2 <- enes %>% filter(...)`, puis `mean(d2$x)`) n'est pas
+#' relié à `enes`.
 #'
 #' @param script Objet issu de [parse_script()].
 #' @param weights Nom de la variable de poids.
@@ -24,7 +31,8 @@ sur01_unweighted_estimators <- function(
   for (rec in collect_calls(script)) {
     if (is.na(rec$name) || !rec$name %in% estimators) next
     tokens <- expr_tokens(rec$call)
-    if (!is.null(data_objects) && !any(data_objects %in% tokens)) next
+    if (!is.null(data_objects) &&
+          !any(data_objects %in% c(tokens, rec$ctx))) next
     if (weights %in% tokens) next
     if ("weights" %in% names(rec$call)) next
     out[[length(out) + 1L]] <- new_finding(
@@ -80,13 +88,18 @@ sur02_weight_divided_by_size <- function(script, weights, size) {
 #' tests de base R appelés sans qu'aucun plan de sondage (`svydesign`,
 #' `as_survey_design`, etc.) ne soit défini dans le script.
 #'
+#' Indépendamment des métadonnées, signale aussi un plan construit sans grappe
+#' (`svydesign(ids = ~1, ...)`) : confiance « à justifier » (le tirage peut
+#' réellement être sans grappe, ou les grappes peuvent être absentes de la
+#' base), et « risque probable » si une grappe est déclarée dans `psu`.
+#'
 #' @param script Objet issu de [parse_script()].
-#' @param strata,psu Noms des variables de strate et de grappe ; au moins l'un
-#'   des deux doit être fourni.
+#' @param strata,psu Noms des variables de strate et de grappe (facultatifs ;
+#'   sans eux, seul le contrôle d'un plan sans grappe s'applique).
 #' @param tests Noms des fonctions considérées comme ignorant le plan.
 #' @param design_constructors Noms des fonctions qui déclarent un plan.
-#' @return Liste de constats (confiance : risque probable), ou une règle non
-#'   évaluée si ni strate ni grappe n'est déclarée.
+#' @return Liste de constats, ou une règle non évaluée si ni strate ni grappe
+#'   n'est déclarée et qu'aucun plan de sondage ne figure dans le script.
 #' @export
 sur03_design_ignored <- function(
     script, strata = NULL, psu = NULL,
@@ -94,16 +107,39 @@ sur03_design_ignored <- function(
               "cor.test"),
     design_constructors = c("svydesign", "as_survey_design", "svrepdesign",
                             "as_survey_rep", "as_survey")) {
-  if (is.null(strata) && is.null(psu)) {
-    return(not_evaluated("ni strate ni grappe d\u00e9clar\u00e9e"))
-  }
   calls <- collect_calls(script)
   names_called <- vapply(calls, function(r) r$name, character(1))
-  if (any(names_called %in% design_constructors)) {
-    return(list())
+  constructors <- Filter(function(r) !is.na(r$name) &&
+                           r$name %in% design_constructors, calls)
+  out <- list()
+  # (a) plan déclaré sans grappe : `svydesign(ids = ~1, ...)`
+  for (rec in constructors) {
+    ids <- design_ids(rec$call)
+    if (is.null(ids) || !ids$none) next
+    declared <- !is.null(psu)
+    out[[length(out) + 1L]] <- new_finding(
+      "SUR-03", if (declared) "risque_probable" else "a_justifier",
+      sprintf(paste0("`%s()` est construit sans grappe (`ids = %s`)%s. Les ",
+                     "erreurs standards supposent alors des unit\u00e9s ind\u00e9pendantes ",
+                     ": elles sont sous-estim\u00e9es si le tirage est en grappes ",
+                     "(zones de d\u00e9nombrement, villages). \u00c0 justifier par le plan ",
+                     "de l'enqu\u00eate."),
+              rec$name, ids$text,
+              if (declared) sprintf(" alors que la grappe `%s` est d\u00e9clar\u00e9e", psu) else ""),
+      location = call_location(rec))
+  }
+  # (b) tests de base R sans plan, quand strates ou grappes sont déclarées
+  if (is.null(strata) && is.null(psu)) {
+    if (length(constructors) == 0L) {
+      return(not_evaluated(paste0("ni strate ni grappe d\u00e9clar\u00e9e, et ",
+                                  "aucun plan de sondage dans le script")))
+    }
+    return(out)
+  }
+  if (length(constructors) > 0L) {
+    return(out)
   }
   declared <- paste(c(strata, psu), collapse = ", ")
-  out <- list()
   for (rec in calls) {
     if (is.na(rec$name) || !rec$name %in% tests) next
     out[[length(out) + 1L]] <- new_finding(
@@ -112,10 +148,29 @@ sur03_design_ignored <- function(
                      "grappes d\u00e9clar\u00e9es : %s). Erreurs standards et ",
                      "intervalles de confiance supposent un tirage al\u00e9atoire ",
                      "simple."), rec$name, declared),
-      location = call_location(rec)
-    )
+      location = call_location(rec))
   }
   out
+}
+
+# Argument de grappes d'un appel `svydesign()` : `ids`/`id`, ou le premier
+# argument positionnel. Renvoie list(text, none) ; `none` vaut TRUE pour
+# `~1` ou `~0` (aucune grappe), NULL si l'argument est absent.
+design_ids <- function(cl) {
+  nms <- names(cl)
+  if (is.null(nms)) nms <- rep("", length(cl))
+  idx <- which(nms %in% c("ids", "id"))
+  if (length(idx) == 0L) {
+    pos <- which(nms[-1L] == "") + 1L
+    if (length(pos) == 0L) return(NULL)
+    idx <- pos[[1L]]
+  }
+  e <- cl[[idx[[1L]]]]
+  txt <- paste(deparse(e), collapse = "")
+  none <- (is.call(e) && identical(e[[1L]], as.name("~")) && length(e) == 2L &&
+             (identical(e[[2L]], 1) || identical(e[[2L]], 0))) ||
+    identical(e, 1) || identical(e, 0)
+  list(text = txt, none = none)
 }
 
 #' SUR-04 : poids invalides

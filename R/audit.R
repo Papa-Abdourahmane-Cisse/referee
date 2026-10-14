@@ -194,13 +194,19 @@ rule_ids <- function() {
 #' @param document Chemin d'un fichier texte, objet issu de [read_document()]
 #'   ou `NULL` (famille DOC).
 #' @param project_dir Racine du projet (dossier) ou `NULL` (règles REP).
+#' @param infer Si `TRUE` et si un script est fourni, complète les métadonnées
+#'   absentes par celles que le script déclare lui-même (variable de poids,
+#'   grappes, strates et table d'enquête lus dans `svydesign()`), voir
+#'   [infer_meta()]. Les métadonnées passées dans `meta` ont toujours la
+#'   priorité. Les champs inférés sont rappelés dans le rapport.
 #' @param params Liste nommée par identifiant de règle, qui surcharge les
 #'   paramètres d'une règle, par exemple
 #'   `list("SUR-04" = list(ratio_max_median = 50))`.
 #' @return Un objet de classe `referee_report`.
 #' @export
 audit <- function(data = NULL, script = NULL, meta = referee_meta(),
-                  params = list(), document = NULL, project_dir = NULL) {
+                  params = list(), document = NULL, project_dir = NULL,
+                  infer = FALSE) {
   if (!inherits(meta, "referee_meta")) {
     stop("`meta` doit \u00eatre cr\u00e9\u00e9 par `referee_meta()`.", call. = FALSE)
   }
@@ -225,6 +231,11 @@ audit <- function(data = NULL, script = NULL, meta = referee_meta(),
         !(is.character(project_dir) && length(project_dir) == 1L &&
             dir.exists(project_dir))) {
     stop("`project_dir` doit \u00eatre un dossier existant.", call. = FALSE)
+  }
+  inferred <- list()
+  if (isTRUE(infer) && !is.null(script)) {
+    meta <- merge_inferred(meta, infer_meta(script))
+    inferred <- attr(meta, "inferred")
   }
   if (!is.null(data)) {
     check_meta_columns(meta, data)
@@ -270,7 +281,8 @@ audit <- function(data = NULL, script = NULL, meta = referee_meta(),
     )
   }
   structure(
-    list(findings = findings, rules = do.call(rbind, rows)),
+    list(findings = findings, rules = do.call(rbind, rows),
+         inferred = inferred),
     class = "referee_report"
   )
 }
@@ -298,6 +310,12 @@ print.referee_report <- function(x, ...) {
   cat("Rapport d'audit du R\u00e9f\u00e9r\u00e9\n")
   cat(sprintf("%d r\u00e8gle(s) \u00e9valu\u00e9e(s) sur %d ; %d non \u00e9valu\u00e9e(s).\n",
               n_eval, nrow(rules), nrow(rules) - n_eval))
+  if (length(x$inferred) > 0L) {
+    cat("M\u00e9tadonn\u00e9es inf\u00e9r\u00e9es du script (\u00e0 confirmer) :\n")
+    for (nm in names(x$inferred)) {
+      cat(sprintf("  %s = %s\n", nm, paste(x$inferred[[nm]], collapse = ", ")))
+    }
+  }
   if (length(x$findings) == 0L) {
     cat("\nAucune alerte parmi les r\u00e8gles \u00e9valu\u00e9es. Cela ne vaut pas validation",
         "de l'analyse.\n")

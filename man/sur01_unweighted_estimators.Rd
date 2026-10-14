@@ -30,6 +30,13 @@ arguments ne citent ni la variable de poids ni un argument `weights`. Les
 variantes pondérées (`weighted.mean`, `svymean`) ne sont pas concernées.
 }
 \details{
+Les pipes magrittr (`%>%`) sont dépliés et les appels situés dans un verbe
+de manipulation de table (`summarise()`, `mutate()`, etc.) sont rattachés à
+la table de départ : `enes %>% summarise(m = mean(x))` est reconnu comme un
+calcul sur `enes`.
+
 Limite connue : un appel qui cite la variable de poids sans l'utiliser
-comme poids (par exemple pour filtrer) échappe à la règle.
+comme poids (par exemple pour filtrer) échappe à la règle. Un objet
+intermédiaire (`d2 <- enes %>% filter(...)`, puis `mean(d2$x)`) n'est pas
+relié à `enes`.
 }
