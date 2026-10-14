@@ -42,20 +42,86 @@ call_name <- function(cl) {
   NA_character_
 }
 
+# Opérateurs de pipe magrittr : `lhs %>% f(x)` équivaut à `f(lhs, x)`.
+PIPE_OPERATORS <- c("%>%", "%<>%", "%T>%")
+
+# Verbes qui reçoivent une table comme premier argument : les appels situés
+# dans leurs autres arguments (`mean(x)` dans `summarise(d, m = mean(x))`)
+# portent donc sur cette table.
+DATA_VERBS <- c("summarise", "summarize", "mutate", "transmute", "filter",
+                "group_by", "ungroup", "select", "arrange", "slice", "reframe",
+                "rename", "distinct", "with", "within", "subset", "transform",
+                "count", "tally", "left_join", "inner_join", "right_join",
+                "full_join", "drop_na", "as_tibble", "as.data.frame", "head")
+
+# Objet de départ d'une chaîne de transformations : `enes %>% filter(a)`
+# donne "enes". NULL si la source n'est pas un simple nom d'objet.
+data_root <- function(e) {
+  if (is.name(e)) {
+    return(as.character(e))
+  }
+  if (!is.call(e)) {
+    return(NULL)
+  }
+  nm <- call_name(e)
+  if (!is.na(nm) && nm %in% c("$", "[[", "[", "@") && length(e) >= 2L) {
+    return(data_root(e[[2L]]))
+  }
+  if (!is.na(nm) && nm %in% c(DATA_VERBS, PIPE_OPERATORS) && length(e) >= 2L) {
+    return(data_root(e[[2L]]))
+  }
+  NULL
+}
+
+# Réécrit `lhs %>% f(args)` en `f(lhs, args)` (sauf si `.` figure déjà parmi
+# les arguments, auquel cas la position de lhs est choisie par l'auteur).
+expand_pipe <- function(x) {
+  lhs <- x[[2L]]
+  rhs <- x[[3L]]
+  if (is.name(rhs)) {
+    return(as.call(list(rhs, lhs)))
+  }
+  if (!is.call(rhs)) {
+    return(NULL)
+  }
+  has_dot <- any(vapply(as.list(rhs)[-1L], function(a) identical(a, quote(.)),
+                        logical(1)))
+  if (has_dot) {
+    return(rhs)
+  }
+  as.call(c(list(rhs[[1L]]), list(lhs), as.list(rhs)[-1L]))
+}
+
 # Parcourt récursivement une expression et renvoie tous les appels de
-# fonction, avec la ligne de l'instruction de premier niveau qui les contient.
-walk_calls <- function(x, line) {
+# fonction, avec la ligne de l'instruction de premier niveau qui les contient
+# et `ctx`, les objets de données des verbes englobants (voir DATA_VERBS).
+# Les pipes magrittr sont dépliés : `d %>% lm(y ~ x)` est lu comme `lm(d, ...)`.
+walk_calls <- function(x, line, ctx = character()) {
   out <- list()
   if (is.call(x)) {
-    out[[1L]] <- list(name = call_name(x), call = x, line = line)
+    nm <- call_name(x)
+    if (!is.na(nm) && nm %in% PIPE_OPERATORS && length(x) == 3L) {
+      out[[1L]] <- list(name = nm, call = x, line = line, ctx = ctx)
+      expanded <- expand_pipe(x)
+      if (!is.null(expanded)) {
+        out <- c(out, walk_calls(expanded, line, ctx))
+      }
+      return(out)
+    }
+    out[[1L]] <- list(name = nm, call = x, line = line, ctx = ctx)
+    inner_ctx <- ctx
+    if (!is.na(nm) && nm %in% DATA_VERBS && length(x) >= 2L) {
+      root <- data_root(x[[2L]])
+      if (!is.null(root)) inner_ctx <- unique(c(ctx, root))
+    }
     for (i in seq_along(x)) {
       if (identical(x[[i]], quote(expr = ))) next # argument vide, ex. df[, 1]
-      out <- c(out, walk_calls(x[[i]], line))
+      out <- c(out, walk_calls(x[[i]], line, if (i == 1L) ctx else inner_ctx))
     }
   } else if (is.pairlist(x)) {
     for (i in seq_along(x)) {
       if (identical(x[[i]], quote(expr = ))) next # paramètre sans défaut
-      out <- c(out, walk_calls(x[[i]], line))
+      out <- c(out, walk_calls(x[[i]], line, ctx))
     }
   }
   out

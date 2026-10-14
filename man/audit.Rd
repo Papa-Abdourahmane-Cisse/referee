@@ -10,7 +10,8 @@ audit(
   meta = referee_meta(),
   params = list(),
   document = NULL,
-  project_dir = NULL
+  project_dir = NULL,
+  infer = FALSE
 )
 }
 \arguments{
@@ -29,6 +30,12 @@ paramètres d'une règle, par exemple
 ou `NULL` (famille DOC).}
 
 \item{project_dir}{Racine du projet (dossier) ou `NULL` (règles REP).}
+
+\item{infer}{Si `TRUE` et si un script est fourni, complète les métadonnées
+absentes par celles que le script déclare lui-même (variable de poids,
+grappes, strates et table d'enquête lus dans `svydesign()`), voir
+[infer_meta()]. Les métadonnées passées dans `meta` ont toujours la
+priorité. Les champs inférés sont rappelés dans le rapport.}
 }
 \value{
 Un objet de classe `referee_report`.
