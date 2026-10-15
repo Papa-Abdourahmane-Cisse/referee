@@ -2,5 +2,5 @@ bibentry("Manual",
   title = "referee : audit méthodologique automatique pour statisticiens et économistes",
   author = person("Papa Abdourahmane", "Cissé"),
   year = format(Sys.Date(), "%Y"),
-  note = "Version de travail (0.1.0)",
+  note = "Version de travail (0.2.0)",
   url = "https://github.com/Papa-Abdourahmane-Cisse/referee")

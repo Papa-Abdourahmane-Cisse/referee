@@ -3,7 +3,7 @@
 [![R-CMD-check](https://github.com/Papa-Abdourahmane-Cisse/referee/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Papa-Abdourahmane-Cisse/referee/actions/workflows/R-CMD-check.yaml)
 
 `referee` relit un script R, des données, un document ou un dossier de projet
-à la manière d'un relecteur méthodologique : il applique **34 règles
+à la manière d'un relecteur méthodologique : il applique **36 règles
 déterministes** (pas d'apprentissage automatique, pas de score opaque) et
 produit un rapport de constats, chacun classé par niveau de confiance.
 
@@ -12,7 +12,7 @@ produit un rapport de constats, chacun classé par niveau de confiance.
 > signale des motifs suspects et des incohérences vérifiables ; il ne
 > certifie pas qu'une analyse est correcte.
 
-Version de travail (`0.1.0`, préliminaire). Voir [Statut et limites](#statut-et-limites).
+Version de travail (`0.2.0`, préliminaire). Voir [Statut et limites](#statut-et-limites).
 
 ## Ce que le paquet fait, et ne fait pas
 
@@ -50,7 +50,7 @@ code concernée. Pour vos propres scripts :
 ```r
 rapport <- audit_script("C:/chemin/vers/mon_script.R")   # barres obliques, même sous Windows
 as.data.frame(rapport)                                   # tableau des constats
-rapport$rules                                            # état de chacune des 34 règles
+rapport$rules                                            # état de chacune des 36 règles
 explain_rule("SUR-01")                                   # fiche d'une règle
 ```
 
@@ -73,7 +73,7 @@ ou un dossier.
 
 | Vous fournissez | Règles évaluables | Exemple |
 |---|---|---|
-| un script | SUR-01 à 03, REP-01, REP-02, VAL, ECO-01, ECO-03, selon les métadonnées | `audit_script("analyse.R")` |
+| un script | SUR-01 à 03, REP-01, REP-02, REP-04, SER-01, VAL, ECO-01, ECO-03, selon les métadonnées | `audit_script("analyse.R")` |
 | + des métadonnées | davantage de règles du script (VAL, ECO, LVL-02, SUR-02) | `audit(script =, meta = referee_meta(...))` |
 | + des données | contrôles numériques (SUR-04, LVL, NUM, VAL-05, ECO-02/04/05, DEM) | `audit(data =, script =, meta =)` |
 | + un document, un dossier | DOC (texte et sorties), REP-03 (environnement) | `audit(document =, project_dir =)` |
@@ -102,7 +102,7 @@ plage de masculinité, etc.) se règlent règle par règle :
 audit(data = d, meta = meta, params = list("SUR-04" = list(ratio_max_median = 50)))
 ```
 
-## Les 34 règles
+## Les 36 règles
 
 Chaque règle a [une fiche](docs/regles/README.md) : ce qu'elle détecte,
 pourquoi, que faire en cas d'alerte, ses limites, un exemple.
@@ -114,8 +114,9 @@ pourquoi, que faire en cas d'alerte, ses limites, un exemple.
 | NUM | 01 à 04 | Cohérence numérique (bornes, sommes, ordre FGT, codes de non-réponse) |
 | VAL | 01 à 06 | Validation en apprentissage automatique (fuite d'information, découpages) |
 | ECO | 01 à 05 | Économétrie : grappes, double différence, instruments faibles, discontinuité |
+| SER | 01 | Séries temporelles : test de racine unitaire sur des résidus de régression |
 | EXT | 01, 02 | Cohérence externe (valeur de référence, ligne de pauvreté) |
-| REP | 01 à 03 | Reproductibilité (chemins, graine, environnement) |
+| REP | 01 à 04 | Reproductibilité (chemins, graine, environnement, paquets non chargés) |
 | DOC | 01 à 03 | Cohérence entre texte et sorties, langage causal |
 | DEM | 01 à 04 | Démographie : **règles candidates, non relues par un démographe** |
 

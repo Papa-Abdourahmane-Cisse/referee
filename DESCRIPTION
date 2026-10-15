@@ -1,7 +1,7 @@
 Package: referee
 Type: Package
 Title: Audit Méthodologique Automatique pour Statisticiens et Économistes
-Version: 0.1.0
+Version: 0.2.0
 Authors@R:
     person("Papa Abdourahmane", "Cissé", email = "abdourapa123@gmail.com",
            role = c("aut", "cre"))

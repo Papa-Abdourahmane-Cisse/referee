@@ -31,6 +31,10 @@ dit rien de l'existence de la référence.
 | ECO-02, ECO-03 | Callaway, B., Sant'Anna, P. H. C. Difference-in-differences with multiple time periods (*Journal of Econometrics*, 2021) | **à vérifier** (la citation officielle du paquet R `did` existe ; volume, pages et DOI non lus) |
 | ECO-04 | Stock, J., Yogo, M. Testing for weak instruments in linear IV regression (2005) | **à vérifier** (non recherchée) |
 | DEM-01 à 04 | références de démographie (indice de Whipple, équation compensatrice, tables de mortalité, rapport de masculinité) | **à compléter avec un démographe** |
+| SER-01 | Engle, R. F., Granger, C. W. J. (1987). Co-integration and error correction: representation, estimation, and testing. *Econometrica*, 55(2), 251-276 | **à vérifier** (non retrouvée dans cette session) |
+| SER-01 | MacKinnon, J. G. (1996). Numerical distribution functions for unit root and cointegration tests. *Journal of Applied Econometrics*, 11(6), 601-618 ; MacKinnon, J. G. (2010). Critical values for cointegration tests. Queen's Economics Department Working Paper No. 1227 | **à vérifier** (non retrouvées) ; l'idée que les valeurs critiques d'Engle-Granger sont tabulées pour une étape 2 sans termes déterministes ressort d'une documentation tierce (statspai), non d'une lecture du texte de MacKinnon |
+| SER-01 | Phillips, P. C. B., Ouliaris, S. (1990). Asymptotic properties of residual based tests for cointegration. *Econometrica*, 58(1), 165-193 ; Shin, Y. (1994). A residual-based test of the null of cointegration against the alternative of no cointegration. *Econometric Theory*, 10(1), 91-115 | **à vérifier** (non retrouvées) |
+| REP-04 | Champ `Depends` de `vars` 1.6-1 (MASS, strucchange, urca, lmtest, sandwich) et de `strucchange` 1.6-0 (zoo, sandwich), pages CRAN consultées le 15 octobre 2026 | **vérifiée** (pages CRAN) pour ces deux paquets seulement ; les autres lignes de la table `ATTACH_CASCADE` ne sont pas vérifiées une à une |
 
 Les seuils conventionnels (F > 10, rapport maximum/médiane des poids de 100,
 plage de masculinité de 80 à 120, etc.) sont des conventions de pratique, pas

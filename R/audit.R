@@ -115,6 +115,9 @@ rule_registry <- function() {
            list(data = ctx$data, score = ctx$meta$score,
                 cutoff = ctx$meta$cutoff, script = ctx$script)
          }),
+    list(id = "SER-01", family = "SER", needs = "script", meta = character(),
+         fun = ser01_residual_unit_root,
+         args = function(ctx) list(script = ctx$script)),
     list(id = "EXT-01", family = "EXT", needs = character(),
          meta = "references",
          fun = ext01_reference_gap,
@@ -137,6 +140,9 @@ rule_registry <- function() {
          meta = character(),
          fun = rep03_environment,
          args = function(ctx) list(project_dir = ctx$project_dir)),
+    list(id = "REP-04", family = "REP", needs = "script", meta = character(),
+         fun = rep04_unattached_package,
+         args = function(ctx) list(script = ctx$script)),
     list(id = "DOC-01", family = "DOC", needs = "document", meta = "figures",
          fun = doc01_text_vs_output,
          args = function(ctx) {

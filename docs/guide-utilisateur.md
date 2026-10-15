@@ -17,7 +17,7 @@ Dans la console R :
 install.packages("remotes")                       # une seule fois
 remotes::install_github("Papa-Abdourahmane-Cisse/referee")
 library(referee)
-length(rule_ids())                                # doit afficher 34
+length(rule_ids())                                # doit afficher 36
 ```
 
 Si R signale qu'un paquet est « en cours d'utilisation », redémarrez R
@@ -44,7 +44,7 @@ Quatre scripts d'exemple sont fournis dans `system.file("examples", package = "r
 
 Le rapport comporte, dans l'ordre :
 
-1. **Le décompte** : « 4 règle(s) évaluée(s) sur 34 ». Les 30 autres n'ont rien
+1. **Le décompte** : « 5 règle(s) évaluée(s) sur 36 ». Les 31 autres n'ont rien
    examiné, faute d'entrées.
 2. **Les métadonnées inférées** du script (poids, grappes, strates, table
    d'enquête), à confirmer.
