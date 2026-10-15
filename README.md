@@ -12,7 +12,7 @@ produit un rapport de constats, chacun classé par niveau de confiance.
 > signale des motifs suspects et des incohérences vérifiables ; il ne
 > certifie pas qu'une analyse est correcte.
 
-Version de travail (`0.0.0.9000`). Voir [Statut et limites](#statut-et-limites).
+Version de travail (`0.1.0`, préliminaire). Voir [Statut et limites](#statut-et-limites).
 
 ## Ce que le paquet fait, et ne fait pas
 

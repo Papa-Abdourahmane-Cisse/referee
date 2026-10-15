@@ -1,4 +1,4 @@
-# referee 0.0.0.9000
+# referee 0.1.0
 
 * 34 règles : SUR, LVL, NUM, VAL, ECO, EXT, REP, DOC, DEM (règles DEM à faire
   relire par un démographe).
