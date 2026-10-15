@@ -26,11 +26,13 @@ Chaque fiche décrit ce que la règle détecte, pourquoi, que faire en cas d'ale
 | [ECO-03](ECO-03.md) | Double différence sans examen des tendances pré-traitement | script + méta | à justifier |
 | [ECO-04](ECO-04.md) | Instrument faible : statistique F de première étape sous le seuil indicatif | data + méta | risque probable |
 | [ECO-05](ECO-05.md) | Discontinuité de régression : accumulation au seuil ou absence de test de manipulation | data + méta | risque probable, à justifier |
+| [SER-01](SER-01.md) | Test de racine unitaire appliqué aux résidus d'une régression de niveaux (valeurs critiques inadaptées) | script | risque probable |
 | [EXT-01](EXT-01.md) | Écart non expliqué avec une valeur de référence déclarée | méta | à justifier |
 | [EXT-02](EXT-02.md) | Ligne de pauvreté, année, unité ou période incohérentes avec l'agrégat de bien-être déclaré | méta | risque probable |
 | [REP-01](REP-01.md) | Chemin absolu propre à une machine, ou fichier d'entrée introuvable | script | certitude, risque probable |
 | [REP-02](REP-02.md) | Procédure stochastique sans graine aléatoire | script | certitude, risque probable |
 | [REP-03](REP-03.md) | Environnement logiciel non documenté (ni renv.lock, ni Dockerfile, ni sessionInfo) | project_dir | à justifier |
+| [REP-04](REP-04.md) | Fonction d'un paquet appelée sans que le paquet soit chargé | script | risque probable |
 | [DOC-01](DOC-01.md) | Chiffre du texte différent de celui de la sortie qui l'a produit | document + méta | certitude, à justifier |
 | [DOC-02](DOC-02.md) | Indicateur chiffré de deux façons, ou sans niveau géographique ni période | document + méta | risque probable, à justifier |
 | [DOC-03](DOC-03.md) | Langage causal sans design d'identification déclaré | document + méta | à justifier |

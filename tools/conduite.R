@@ -109,6 +109,14 @@ conduite <- list(
     pourquoi = "Sans trace des versions de R et des paquets, les résultats peuvent changer d'une machine ou d'une date à l'autre.",
     conduite = "Verrouiller l'environnement (`renv::init()`, `renv.lock`), ou fournir un `Dockerfile`, ou enregistrer `sessionInfo()`.",
     exemple = "renv::init(); renv::snapshot()"),
+  "SER-01" = list(
+    pourquoi = "Le test de cointégration d'Engle-Granger applique un test de racine unitaire aux résidus d'une régression de niveaux. Ces résidus sont estimés : leur distribution sous l'hypothèse nulle diffère de celle d'une série observée, et les valeurs critiques usuelles du test de Dickey-Fuller ne conviennent pas. Les p-values affichées ne sont alors pas interprétables comme un test de cointégration.",
+    conduite = "Comparer la statistique aux valeurs critiques d'Engle-Granger (MacKinnon), ou utiliser un test conçu pour ce cas (`tseries::po.test()`, `urca::ca.po()`), ou la procédure de Johansen. Vérifier d'abord que les deux séries sont intégrées du même ordre (tests sur les niveaux et sur les différences) et justifier la spécification déterministe. Si la régression n'a pas pour objet la cointégration, écarter le constat.",
+    exemple = "reg <- lm(x ~ y)\nadf.test(residuals(reg))   # alerte\ntseries::po.test(cbind(x, y))"),
+  "REP-04" = list(
+    pourquoi = "Un script qui appelle `ca.jo()` sans charger `urca` s'arrête sur « could not find function » chez un tiers, et parfois chez son auteur dès qu'une session est redémarrée : il dépendait d'un paquet chargé auparavant à la main.",
+    conduite = "Charger chaque paquet utilisé en tête de script (`library(urca)`), ou préfixer l'appel (`urca::ca.jo()`). Documenter l'environnement (REP-03).",
+    exemple = "ca.jo(d)            # alerte\nlibrary(urca)\nca.jo(d)"),
   "DOC-01" = list(
     pourquoi = "Un chiffre recopié à la main dans le texte peut différer de celui de la sortie après une mise à jour du calcul.",
     conduite = "Générer le texte depuis les sorties (R Markdown, Quarto) ou relire chaque chiffre contre sa source.",

@@ -261,3 +261,155 @@ rep03_environment <- function(project_dir) {
            "tra\u00e7ables."),
     location = project_dir))
 }
+
+# Paquet(s) qui fournissent des fonctions courantes. Seules des fonctions dont
+# le nom est propre à un paquet figurent ici ; plusieurs paquets sont listés
+# lorsque deux paquets exportent la même fonction.
+FUNCTION_PACKAGES <- list(
+  ca.jo = "urca", cajorls = "urca", ca.po = "urca", ur.df = "urca",
+  ur.kpss = "urca", ur.pp = "urca", ur.ers = "urca", ur.sp = "urca",
+  adf.test = c("tseries", "aTSA"), kpss.test = c("tseries", "aTSA"),
+  pp.test = c("tseries", "aTSA"), po.test = "tseries",
+  as.yearqtr = "zoo", as.yearmon = "zoo", rollmean = "zoo",
+  VAR = "vars", VARselect = "vars", vec2var = "vars",
+  svydesign = "survey", svymean = "survey", svytotal = "survey",
+  svyglm = "survey", svytable = "survey", svyby = "survey",
+  as_survey_design = "srvyr",
+  feols = "fixest", feglm = "fixest",
+  coeftest = "lmtest", bptest = "lmtest", dwtest = "lmtest",
+  vcovHC = "sandwich", vcovCL = "sandwich",
+  ivreg = c("AER", "ivreg"), plm = "plm",
+  ranger = "ranger", randomForest = "randomForest",
+  glmnet = "glmnet", cv.glmnet = "glmnet",
+  createDataPartition = "caret", createFolds = "caret",
+  trainControl = "caret",
+  read_excel = "readxl", read_xls = "readxl", read_xlsx = "readxl",
+  read_dta = "haven", read_sav = "haven", read_sas = "haven",
+  ggplot = "ggplot2", pivot_longer = "tidyr", pivot_wider = "tidyr"
+)
+
+# Paquets attachés en cascade (champ Depends, ou méta-paquet) par un paquet
+# chargé avec `library()`. Table fixe et prudente : un paquet absent de cette
+# liste est supposé ne rien attacher d'autre, ce qui peut produire un faux
+# positif si ce n'est pas le cas.
+ATTACH_CASCADE <- list(
+  tidyverse = c("ggplot2", "dplyr", "tidyr", "readr", "purrr", "tibble",
+                "stringr", "forcats", "lubridate"),
+  vars = c("MASS", "strucchange", "urca", "lmtest", "sandwich", "zoo"),
+  AER = c("car", "carData", "lmtest", "sandwich", "survival", "zoo"),
+  survey = c("grid", "Matrix", "survival"),
+  strucchange = c("zoo", "sandwich"), lmtest = "zoo", car = "carData",
+  dynlm = "zoo", xts = "zoo", quantmod = c("xts", "zoo", "TTR"),
+  caret = c("lattice", "ggplot2")
+)
+
+# Paquets chargés par le script, avec la ligne du premier chargement.
+# Renvoie NULL si un chargement n'est pas lisible dans le code (nom de paquet
+# calculé, `character.only`, boucle sur `library`).
+attached_packages <- function(script) {
+  calls <- collect_calls(script)
+  loaders <- Filter(function(r) !is.na(r$name) &&
+                      r$name %in% c("library", "require", "p_load"), calls)
+  tokens <- unlist(lapply(as.list(script$exprs), expr_tokens))
+  n_bare <- sum(tokens %in% c("library", "require"))
+  n_calls <- sum(vapply(loaders, function(r) r$name %in% c("library", "require"),
+                        logical(1)))
+  if (n_bare != n_calls) return(NULL)
+  att <- list()
+  add <- function(pkg, line) {
+    for (p in c(pkg, ATTACH_CASCADE[[pkg]])) {
+      att[[p]] <<- if (is.null(att[[p]])) line else min(att[[p]], line)
+    }
+  }
+  for (r in loaders) {
+    nms <- names(r$call)
+    if (!is.null(nms) && "character.only" %in% nms) return(NULL)
+    args <- as.list(r$call)[-1L]
+    if (!is.null(nms)) {
+      args <- args[!nms[-1L] %in% c("quietly", "warn.conflicts", "install",
+                                    "update", "character.only")]
+    }
+    if (r$name == "p_load") {
+      pk <- args
+    } else {
+      pk <- args[seq_len(min(1L, length(args)))]
+    }
+    for (a in pk) {
+      if (is.name(a)) add(as.character(a), r$line)
+      else if (is.character(a) && length(a) == 1L) add(a, r$line)
+      else return(NULL)
+    }
+  }
+  att
+}
+
+#' REP-04 : fonction d'un paquet non chargé
+#'
+#' Signale l'appel de premier niveau d'une fonction connue pour appartenir à un
+#' paquet (`ca.jo()` pour `urca`, `as.yearqtr()` pour `zoo`, `read_excel()` pour
+#' `readxl`, `svydesign()` pour `survey`, etc.) lorsque le script ne charge
+#' pas ce paquet avant l'appel, ne le préfixe pas (`urca::ca.jo()`) et ne
+#' définit pas lui-même la fonction. L'exécution s'arrêterait sur « could not
+#' find function ». Les paquets attachés en cascade (`library(vars)` attache
+#' `urca`, par exemple) sont pris en compte par une table fixe.
+#'
+#' Limites connues : la liste des fonctions reconnues est courte et ne
+#' couvre pas tous les paquets ; un paquet chargé hors du script (fichier
+#' `.Rprofile`, script appelé par `source()`) n'est pas vu, d'où le niveau
+#' « risque probable » ; la table des paquets attachés en cascade est
+#' volontairement prudente mais incomplète, et un paquet absent de la table qui
+#' attache lui-même d'autres paquets peut provoquer un faux positif. Si le
+#' script charge des paquets de façon dynamique (`character.only = TRUE`,
+#' boucle sur `library`), la règle est non évaluée.
+#'
+#' @param script Objet issu de [parse_script()].
+#' @return Liste de constats (un par paquet manquant), ou une liste marquée
+#'   « non évaluée » si les chargements de paquets ne sont pas lisibles.
+#' @export
+rep04_unattached_package <- function(script) {
+  att <- attached_packages(script)
+  if (is.null(att)) {
+    return(not_evaluated(paste0("chargement dynamique de paquets (",
+                                "`character.only`, boucle sur `library`) non r\u00e9solu")))
+  }
+  exprs <- as.list(script$exprs)
+  defined <- character()
+  for (e in exprs) {
+    if (is.call(e) && length(e) == 3L &&
+          as.character(e[[1L]])[1L] %in% c("<-", "=", "<<-") && is.name(e[[2L]])) {
+      defined <- c(defined, as.character(e[[2L]]))
+    }
+  }
+  sourced <- has_call(collect_calls(script), "source")
+  missing <- list()
+  for (rec in toplevel_calls(script)) {
+    nm <- rec$name
+    if (is.na(nm) || is.null(FUNCTION_PACKAGES[[nm]])) next
+    if (is.call(rec$call[[1L]])) next # `pkg::f()` : paquet explicite
+    if (nm %in% defined) next
+    pk <- FUNCTION_PACKAGES[[nm]]
+    ok <- any(vapply(pk, function(p) !is.null(att[[p]]) && att[[p]] <= rec$line,
+                     logical(1)))
+    if (ok) next
+    key <- pk[1L]
+    missing[[key]] <- c(missing[[key]], list(rec))
+  }
+  out <- list()
+  for (pkg in names(missing)) {
+    recs <- missing[[pkg]]
+    fns <- unique(vapply(recs, function(r) r$name, character(1)))
+    out[[length(out) + 1L]] <- new_finding(
+      "REP-04", "risque_probable",
+      sprintf(paste0("%s %s du paquet `%s` %s appel\u00e9%s sans `library(%s)` pr\u00e9alable ",
+                     "ni pr\u00e9fixe `%s::` : l'ex\u00e9cution s'arr\u00eaterait sur ",
+                     "\u00ab could not find function \u00bb.%s"),
+              if (length(fns) > 1L) "Les fonctions" else "La fonction",
+              paste0(paste0("`", fns, "()`"), collapse = ", "), pkg,
+              if (length(fns) > 1L) "sont" else "est",
+              if (length(fns) > 1L) "es" else "e", pkg, pkg,
+              if (sourced) " Le script appelle `source()` : le paquet peut y \u00eatre charg\u00e9." else ""),
+      location = call_location(recs[[1L]]),
+      details = list(package = pkg, functions = fns, n_calls = length(recs)))
+  }
+  out
+}

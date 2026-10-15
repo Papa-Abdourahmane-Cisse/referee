@@ -37,7 +37,8 @@ split_desc <- function(lines) {
 fam_names <- c(SUR = "Plan de sondage et pondération", LVL = "Niveaux d'analyse",
                NUM = "Cohérence numérique",
                VAL = "Validation en apprentissage automatique",
-               ECO = "Économétrie et identification", EXT = "Cohérence externe",
+               ECO = "Économétrie et identification",
+               SER = "Séries temporelles", EXT = "Cohérence externe",
                REP = "Reproductibilité", DOC = "Cohérence documentaire",
                DEM = "Démographie (règles candidates)")
 needs_txt <- c(data = "des données (data frame)", script = "un script R",

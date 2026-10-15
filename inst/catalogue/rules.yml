@@ -134,6 +134,12 @@
   detection: [données, statique, métadonnées]
   confiance: [risque_probable, a_justifier]
 
+- id: SER-01
+  famille: SER
+  titre: Test de racine unitaire appliqué aux résidus d'une régression de niveaux (valeurs critiques inadaptées)
+  detection: [statique]
+  confiance: [risque_probable]
+
 - id: EXT-01
   famille: EXT
   titre: Écart non expliqué avec une valeur de référence déclarée
@@ -163,6 +169,12 @@
   titre: "Environnement logiciel non documenté (ni renv.lock, ni Dockerfile, ni sessionInfo)"
   detection: [système de fichiers]
   confiance: [a_justifier]
+
+- id: REP-04
+  famille: REP
+  titre: Fonction d'un paquet appelée sans que le paquet soit chargé
+  detection: [statique]
+  confiance: [risque_probable]
 
 - id: DOC-01
   famille: DOC
